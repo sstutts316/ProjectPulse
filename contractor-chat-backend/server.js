@@ -108,32 +108,41 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 
 // Endpoint to save chat messages and interact with OpenAI
 app.post('/api/chat', async (req, res) => {
-  const { userId, message, model } = req.body;
-  
-  // Validate the selected model and default to 'gpt-3.5-turbo' if the model is not allowed or missing
-  const chosenModel = allowedModels.includes(model) ? model : 'gpt-3.5-turbo';
-
+  const { userId, message } = req.body;
   try {
     // Save the user's message to the database
     await pool.query('INSERT INTO chat (user_id, message) VALUES ($1, $2)', [userId, message]);
     
     let aiResponseText = "AI response is unavailable.";
-    
-    // Check if OpenAI is configured and available
     if (openai) {
-      // Generate a response using the chosen model and limit the tokens to control costs
-      const aiResponse = await openai.chat.completions.create({
-        model: chosenModel,
-        messages: [{ role: "user", content: `Provide a project update response based on this message: "${message}"` }],
-        max_tokens: MAX_TOKENS_PER_REQUEST, // Limit tokens to control costs
-      });
-      aiResponseText = aiResponse.data.choices[0].message.content.trim();
+      try {
+        // Call the OpenAI API with the newer method
+        const aiResponse = await openai.chat.completions.create({
+          model: 'gpt-3.5-turbo', // Use the chat completion model
+          messages: [
+            { role: 'system', content: 'You are a helpful assistant that provides project updates.' },
+            { role: 'user', content: message }
+          ],
+          max_tokens: MAX_TOKENS_PER_REQUEST,
+        });
+
+        // Check if the response has choices and extract the response
+        if (aiResponse.choices && aiResponse.choices.length > 0) {
+          aiResponseText = aiResponse.choices[0].message.content.trim();
+        } else {
+          console.error('OpenAI did not return choices:', aiResponse);
+        }
+      } catch (apiError) {
+        console.error('Error calling OpenAI:', apiError);
+      }
+    } else {
+      console.warn('OpenAI instance is not initialized.');
     }
 
-    // Return the original message and AI-generated response
+    // Return the user's message and the AI response
     res.json({ userMessage: message, aiResponse: aiResponseText });
   } catch (error) {
-    console.error(error);
+    console.error('Failed to send message or generate response:', error);
     res.status(500).send('Error saving message or generating response');
   }
 });
