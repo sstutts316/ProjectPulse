@@ -1,17 +1,16 @@
-import { Component, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
-import { firstValueFrom } from 'rxjs';
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common'; // Import CommonModule for ngFor directive
+import { FormsModule } from '@angular/forms'; // Import FormsModule for ngModel directive
+import { HttpClient } from '@angular/common/http'; // Import HttpClient
+import { firstValueFrom } from 'rxjs'; // For promise conversion
 
 @Component({
   selector: 'app-chat',
-  standalone: true,
   templateUrl: './chat.component.html',
-  styleUrls: ['./chat.component.css'],
-  imports: [FormsModule, CommonModule]
+  standalone: true,
+  imports: [CommonModule, FormsModule] // Ensure CommonModule and FormsModule are imported here
 })
-export class ChatComponent implements OnInit {
+export class ChatComponent {
   newMessage: string = ''; 
   messages: { user: string; content: string }[] = []; 
   userId: number = 1; // Assuming user ID is known
@@ -20,7 +19,6 @@ export class ChatComponent implements OnInit {
   constructor(private http: HttpClient) {}
 
   async ngOnInit(): Promise<void> {
-    // Fetch chat history when the component loads
     await this.getChatHistory();
   }
 
@@ -43,7 +41,7 @@ export class ChatComponent implements OnInit {
       const token = localStorage.getItem('authToken');
       try {
         const response: any = await firstValueFrom(
-          this.http.post(`${this.apiUrl}`, { userId: this.userId, message: this.newMessage }, {
+          this.http.post(this.apiUrl, { userId: this.userId, message: this.newMessage }, {
             headers: { Authorization: `Bearer ${token}` }
           })
         );

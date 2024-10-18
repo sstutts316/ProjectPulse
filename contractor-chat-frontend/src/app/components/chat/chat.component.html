@@ -2,8 +2,7 @@
   <div *ngFor="let message of messages">
     <strong>{{ message.user }}:</strong> {{ message.content }}
   </div>
-  <form (ngSubmit)="sendMessage()">
-    <input type="text" [(ngModel)]="newMessage" name="newMessage" placeholder="Type your message..." />
-    <button type="submit">Send</button>
-  </form>
+  
+  <input type="text" [(ngModel)]="newMessage" name="newMessage" placeholder="Type your message..." />
+  <button (click)="sendMessage()">Send</button>
 </div>

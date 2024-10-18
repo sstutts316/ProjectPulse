@@ -1,29 +1,31 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
-import { HttpClientModule } from '@angular/common/http'; // For HTTP services
-import { RouterModule } from '@angular/router'; // For routing
-
+import { provideHttpClient } from '@angular/common/http'; // Use this instead of HttpClientModule
+import { FormsModule } from '@angular/forms';
+import { RouterModule } from '@angular/router';
 import { AppComponent } from './app.component';
+import { HomeComponent } from './components/home/home.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
 import { ChatComponent } from './components/chat/chat.component';
-import { routes } from './app.routes'; // Import routes
 
 @NgModule({
   declarations: [
-    AppComponent,
-    LoginComponent,
-    RegisterComponent,
-    ChatComponent,
+    AppComponent
   ],
   imports: [
     BrowserModule,
-    FormsModule, // Include FormsModule here
-    HttpClientModule,
-    RouterModule.forRoot(routes), // Use RouterModule for the app's routes
+    FormsModule,
+    RouterModule.forRoot([
+      { path: '', component: HomeComponent },
+      { path: 'login', component: LoginComponent },
+      { path: 'register', component: RegisterComponent },
+      { path: 'chat', component: ChatComponent }
+    ])
   ],
-  providers: [],
-  bootstrap: [AppComponent], // Main component to bootstrap
+  providers: [
+    provideHttpClient() // Replacing HttpClientModule with this
+  ],
+  bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

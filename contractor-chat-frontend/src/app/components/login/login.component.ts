@@ -1,34 +1,38 @@
 import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import { FormsModule } from '@angular/forms';
-import { AuthService } from '../../services/auth.service';
+import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms'; // Make sure to include this for [(ngModel)]
 
 @Component({
   selector: 'app-login',
-  standalone: true,
   templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css'],
-  imports: [FormsModule]
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule] // Use RouterModule here
 })
 export class LoginComponent {
-  email: string = ''; 
-  password: string = ''; 
+  email: string = '';
+  password: string = '';
+  errorMessage: string = '';
 
-  constructor(private authService: AuthService, private router: Router) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
-  // Function to handle login
   login() {
-    console.log('Login attempt:', this.email, this.password); // Add log to confirm action
-    this.authService.login(this.email, this.password).subscribe(
-      (response) => {
-        this.authService.saveToken(response.token);
-        console.log('Login successful:', response);
-        this.router.navigate(['/chat']); // Redirect to the chat component
+    this.http.post('http://localhost:5000/api/login', {
+      email: this.email,
+      password: this.password,
+    }).subscribe({
+      next: (response: any) => {
+        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('userId', response.userId);
+        this.router.navigate(['/chat']);
       },
-      (error) => {
-        console.error('Login failed:', error);
-        alert('Invalid email or password.');
+      error: (error) => {
+        this.errorMessage = 'Invalid credentials. Please re-enter your credentials.';
+      },
+      complete: () => {
+        console.log('Login request completed');
       }
-    );
+    });    
   }
 }
