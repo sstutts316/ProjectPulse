@@ -1,0 +1,44 @@
+// src/styles/variables.scss
+
+// Colors
+$primary-color: #007bff; // Main brand color (e.g., blue)
+$secondary-color: #f8f9fa; // Background or secondary color (e.g., light gray)
+$accent-color: #ffc107; // Accent color (e.g., yellow)
+$danger-color: #dc3545; // Danger or error color (e.g., red)
+$success-color: #28a745; // Success color (e.g., green)
+$info-color: #17a2b8; // Info color (e.g., teal)
+$light-color: #f4f4f4; // Light color for backgrounds
+$dark-color: #343a40; // Dark color for text or accents
+$text-color: #212529; // Main text color
+
+// Typography
+$font-family-base: 'Arial, sans-serif';
+$font-size-base: 16px;
+$font-size-lg: 1.25rem; // Larger text
+$font-size-sm: 0.875rem; // Smaller text
+$font-weight-normal: 400;
+$font-weight-bold: 700;
+
+// Spacing (Padding and Margin)
+$spacer: 1rem; // Default spacer size (16px)
+$spacer-sm: 0.5rem; // Smaller spacer (8px)
+$spacer-lg: 2rem; // Larger spacer (32px)
+
+// Borders
+$border-radius: 8px; // Default border radius
+$border-radius-sm: 4px; // Smaller border radius
+$border-radius-lg: 12px; // Larger border radius
+
+// Shadows
+$box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); // Light shadow
+$box-shadow-lg: 0 6px 8px rgba(0, 0, 0, 0.15); // Larger shadow
+
+// Animations
+$transition-duration: 0.3s; // Transition timing
+$animation-duration: 0.5s; // Animation timing
+
+// Breakpoints (For responsive design)
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;

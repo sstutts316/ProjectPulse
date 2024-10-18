@@ -49,6 +49,20 @@ const loginLimiter = rateLimit({
   message: "Too many login attempts, please try again later."
 });
 
+// Middleware to verify JWT token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.sendStatus(401);  // Unauthorized if no token provided
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);  // Forbidden if token is invalid
+    req.user = user;  // Attach user info to request object
+    next();
+  });
+}
+
 // Endpoint to register a new user
 app.post('/api/register', [
   // Validation rules for request body
@@ -88,15 +102,12 @@ app.post('/api/register', [
 app.post('/api/login', loginLimiter, async (req, res) => {
   const { email, password } = req.body;
   try {
-    // Fetch user by email
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    // Compare provided password with stored hashed password
     if (user && bcrypt.compareSync(password, user.password)) {
-      // Generate a JWT token upon successful login
       const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
-      res.json({ token });
+      res.json({ token, userId: user.id }); // Return both token and userId
     } else {
       res.status(401).send('Invalid credentials');
     }
@@ -107,8 +118,10 @@ app.post('/api/login', loginLimiter, async (req, res) => {
 });
 
 // Endpoint to save chat messages and interact with OpenAI
-app.post('/api/chat', async (req, res) => {
-  const { userId, message } = req.body;
+app.post('/api/chat', authenticateToken, async (req, res) => {
+  const { message } = req.body;
+  const userId = req.user.id;  // Get the user ID from JWT token
+  
   try {
     // Save the user's message to the database
     await pool.query('INSERT INTO chat (user_id, message) VALUES ($1, $2)', [userId, message]);
@@ -118,7 +131,7 @@ app.post('/api/chat', async (req, res) => {
       try {
         // Call the OpenAI API with the newer method
         const aiResponse = await openai.chat.completions.create({
-          model: 'gpt-3.5-turbo', // Use the chat completion model
+          model: 'gpt-3.5-turbo',
           messages: [
             { role: 'system', content: 'You are a helpful assistant that provides project updates.' },
             { role: 'user', content: message }
@@ -126,17 +139,12 @@ app.post('/api/chat', async (req, res) => {
           max_tokens: MAX_TOKENS_PER_REQUEST,
         });
 
-        // Check if the response has choices and extract the response
         if (aiResponse.choices && aiResponse.choices.length > 0) {
           aiResponseText = aiResponse.choices[0].message.content.trim();
-        } else {
-          console.error('OpenAI did not return choices:', aiResponse);
         }
       } catch (apiError) {
         console.error('Error calling OpenAI:', apiError);
       }
-    } else {
-      console.warn('OpenAI instance is not initialized.');
     }
 
     // Return the user's message and the AI response
@@ -147,43 +155,13 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-// Middleware to verify JWT token
-function authenticateToken(req, res, next) {
-  // Extract the 'Authorization' header from the request
-  const authHeader = req.headers['authorization'];
-
-  // Check if the 'Authorization' header exists
-  if (!authHeader) {
-    return res.sendStatus(401); // Unauthorized if no header is present
-  }
-
-  // Extract the token part (after 'Bearer')
-  const token = authHeader.split(' ')[1];
-
-  // Check if the token exists after 'Bearer'
-  if (!token) {
-    return res.sendStatus(401); // Unauthorized if no token after "Bearer"
-  }
-
-  // Verify the token using the JWT_SECRET
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) {
-      return res.sendStatus(403); // Forbidden if token is invalid
-    }
-
-    // Attach the user information to the request object and proceed to the next function
-    req.user = user;
-    next();
-  });
-}
-
-// Endpoint to retrieve chat history for a specific user
+// Endpoint to retrieve chat history for the logged-in user
 app.get('/api/chat/:userId', authenticateToken, async (req, res) => {
-  const { userId } = req.params;
+  const { userId } = req.params;  // Ensure userId is received correctly
   try {
-    // Fetch all chat messages for the specified user
+    // Fetch chat history for the specified userId
     const result = await pool.query('SELECT * FROM chat WHERE user_id = $1', [userId]);
-    res.json(result.rows); // Return chat history
+    res.json(result.rows); // Return the user's chat history
   } catch (error) {
     console.error(error);
     res.status(500).send('Error retrieving chat history');

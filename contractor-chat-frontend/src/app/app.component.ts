@@ -1,13 +1,12 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  template: `
+    <router-outlet></router-outlet> <!-- This will render your routed components -->
+  `,
+  imports: [RouterModule]
 })
-export class AppComponent {
-  title = 'contractor-chat-frontend';
-}
+export class AppComponent {}

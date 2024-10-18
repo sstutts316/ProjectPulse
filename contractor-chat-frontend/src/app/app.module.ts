@@ -1,29 +1,29 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
-import { FormsModule } from '@angular/forms'; // Import FormsModule
-import { HttpClientModule } from '@angular/common/http'; // For HTTP services
-import { RouterModule } from '@angular/router'; // For routing
-
+import { RouterModule } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
 import { AppComponent } from './app.component';
-import { LoginComponent } from './components/login/login.component';
+import { routes } from './app.routes';
+import { HomeComponent } from './components/home/home.component';
 import { RegisterComponent } from './components/register/register.component';
+import { LoginComponent } from './components/login/login.component';
 import { ChatComponent } from './components/chat/chat.component';
-import { routes } from './app.routes'; // Import routes
 
 @NgModule({
   declarations: [
     AppComponent,
-    LoginComponent,
+    HomeComponent,
     RegisterComponent,
-    ChatComponent,
+    LoginComponent,
+    ChatComponent
   ],
   imports: [
     BrowserModule,
-    FormsModule, // Include FormsModule here
-    HttpClientModule,
-    RouterModule.forRoot(routes), // Use RouterModule for the app's routes
+    RouterModule.forRoot(routes) // Use RouterModule to set up routing
   ],
-  providers: [],
-  bootstrap: [AppComponent], // Main component to bootstrap
+  providers: [
+    provideHttpClient() // Set up HttpClient
+  ],
+  bootstrap: [AppComponent]
 })
-export class AppModule {}
+export class AppModule { }

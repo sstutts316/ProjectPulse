@@ -1,35 +1,33 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from './auth.service'; // Import the AuthService
 import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private apiUrl = 'http://localhost:5000/api'; // Your backend API base URL
+  private apiUrl = 'http://localhost:5000/api'; // Replace with your backend API URL
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient, private authService: AuthService) { }
 
-  // User Registration
-  register(name: string, email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/register`, { name, email, password });
+  // Send a message to the server
+  sendMessage(message: string): Observable<any> {
+    const userId = this.authService.getUserId(); // Get the user ID from AuthService
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.authService.getToken()}` // Add the token for authenticated requests
+    });
+
+    return this.http.post(`${this.apiUrl}/chat`, { message, userId }, { headers });
   }
 
-  // User Login
-  login(email: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, { email, password });
-  }
+  // Get chat history for the logged-in user
+  getChatHistory(): Observable<any> {
+    const userId = this.authService.getUserId(); // Get the user ID from AuthService
+    const headers = new HttpHeaders({
+      'Authorization': `Bearer ${this.authService.getToken()}` // Add the token for authenticated requests
+    });
 
-  // Send Chat Message
-  sendMessage(userId: number, message: string, token: string): Observable<any> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post(`${this.apiUrl}/chat`, { userId, message }, { headers });
-  }
-
-  // Fetch Chat History
-  getChatHistory(userId: number, token: string): Observable<any> {
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     return this.http.get(`${this.apiUrl}/chat/${userId}`, { headers });
   }
 }
-
